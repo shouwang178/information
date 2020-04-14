@@ -1,0 +1,70 @@
+1.几乎所有运算符都只能操作基本类型(Primitives)。唯一的例外是=、==和!=，它们能操作所有对象(这也是令人混淆的一个地方)。除此以外，String 类支持 + 和 +=。
+
+2.我们注意到，在System.out.println()语句中使用了+运算符。但是在这里+代表的意思是字符串连接符。编译器会将+连接的非字符串尝试转换为字符串。上例中的输出结果说明了a和b都已经被转化成了字符串。
+
+3.基本类型的赋值都是直接的，而不像对象，赋予的只是其内存的引用。举个例子，a=b，如果b是基本类型，那么赋值操作会将b的值复制一份给变量a， 此后若 a的值发生改变是不会影响到b的。作为一名程序员，这应该成为我们的常识。
+
+4.如果是为对象赋值，那么结果就不一样了。对一个对象进行操作时，我们实际上操作的是它的引用。所以我们将右边的对象赋予给左边时，赋予的只是该对象的引用。此时，两者指向的堆中的对象还是同一个。
+
+5.关系运算符==和!=同样适用于所有对象之间的比较运算，但它们比较的内容却经常困扰Java的初学者。下面是代码示例：
+
+	// operators/Equivalence.java
+	public class Equivalence {
+		public static void main(String[] args) {
+			Integer n1 = 47;
+			Integer n2 = 47;
+			System.out.println(n1 == n2);
+			System.out.println(n1 != n2);
+		}
+	}
+
+输出结果：
+	true
+	false
+
+表达式System.out.println(n1==n2)将会输出比较的结果。因为两个Integer对象相同，所以先输出true，再输出false。但是，尽管对象的内容一样，对象的引用却不一样。==和!=比较的是对象引用，所以输出实际上应该是先输出false，再输出true(译者注：如果你把47改成128，那么打印的结果就是这样，因为Integer内部维护着一个IntegerCache的缓存，默认缓存范围是[-128,127]，所以[-128,127]之间的值用==和!=比较也能能到正确的结果，但是不推荐用关系运算符比较，具体见JDK中的Integer类源码)。
+
+那么怎么比较两个对象的内容是否相同呢？你必须使用所有对象(不包括基本类型)中都存在的equals()方法，下面是如何使用equals()方法的示例：
+
+	// operators/EqualsMethod.java
+	public class EqualsMethod {
+		public static void main(String[] args) {
+			Integer n1 = 47;
+			Integer n2 = 47;
+			System.out.println(n1.equals(n2));
+		}
+	}
+输出结果:
+	true
+
+上例的结果看起来是我们所期望的。但其实事情并非那么简单。下面我们来创建自己的类：
+
+	// operators/EqualsMethod2.java
+	// 默认的 equals() 方法没有比较内容
+	class Value {
+		int i;
+	}
+
+	public class EqualsMethod2 {
+		public static void main(String[] args) {
+			Value v1 = new Value();
+			Value v2 = new Value();
+			v1.i = v2.i = 100;
+			System.out.println(v1.equals(v2));
+		}
+	}
+输出结果:
+	false
+
+上例的结果再次令人困惑：结果是false。原因：equals()的默认行为是比较对象的引用而非具体内容。因此，除非你在新类中覆写equals()方法，否则我们将获取不到想要的结果。
+大多数Java库类通过覆写equals()方法比较对象的内容而不是其引用。
+
+6.逻辑运算符支持一种称为“短路”（short-circuiting）的现象。整个表达式会在运算到可以明确结果时就停止并返回结果，这意味着该逻辑表达式的后半部分不会被执行到。运用“短路”可以节省部分不必要的运算，从而提高程序潜在的性能。
+
+7.通常，当我们向程序中插入一个字面值常量(Literal)时，编译器会确切地识别它的类型。当类型不明确时，必须辅以字面值常量关联来帮助编译器识别
+
+8.从float和double转换为整数值时，小数位将被截断。若你想对结果进行四舍五入，可以使用java.lang.Math的round()方法。
+
+9.如果我们对小于int的基本数据类型(即char、byte或short)执行任何算术或按位操作，这些值会在执行操作之前类型提升为int，并且结果值的类型为int。若想重新使用较小的类型，必须使用强制转换(由于重新分配回一个较小的类型，结果可能会丢失精度)。通常，表达式中最大的数据类型是决定表达式结果的数据类型。float型和double型相乘，结果是 double型的；int和long相加，结果是long型。
+
+10.Java不需要sizeof()方法来满足这种需求，因为所有类型的大小在不同平台上是相同的。我们不必考虑这个层次的移植问题——Java本身就是一种“与平台无关”的语言。
